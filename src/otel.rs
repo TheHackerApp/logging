@@ -12,6 +12,13 @@ use opentelemetry::{
 use opentelemetry_otlp::{Protocol, SpanExporterBuilder, WithExportConfig};
 use std::time::Duration;
 
+/// Configuration for the exporter
+#[derive(Debug)]
+pub(crate) struct Config<'c> {
+    pub(crate) url: &'c str,
+    pub(crate) protocol: Protocol,
+}
+
 /// Create a new tracing pipeline
 pub(crate) fn tracer(exporter: SpanExporterBuilder) -> Result<Tracer, TraceError> {
     opentelemetry_otlp::new_pipeline()
@@ -22,17 +29,17 @@ pub(crate) fn tracer(exporter: SpanExporterBuilder) -> Result<Tracer, TraceError
 }
 
 /// Create a new span exporter depending on the protocol
-pub(crate) fn exporter(protocol: Protocol, url: &str) -> SpanExporterBuilder {
-    match protocol {
+pub(crate) fn exporter(config: Config<'_>) -> SpanExporterBuilder {
+    match config.protocol {
         Protocol::Grpc => opentelemetry_otlp::new_exporter()
             .tonic()
             .with_env()
-            .with_endpoint(url)
+            .with_endpoint(config.url)
             .into(),
         Protocol::HttpBinary => opentelemetry_otlp::new_exporter()
             .http()
             .with_env()
-            .with_endpoint(url)
+            .with_endpoint(config.url)
             .into(),
     }
 }

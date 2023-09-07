@@ -1,4 +1,3 @@
-use eyre::WrapErr;
 use tracing::Level;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{
@@ -8,10 +7,12 @@ use tracing_subscriber::{
     Registry,
 };
 
+#[cfg(feature = "opentelemetry")]
 pub use opentelemetry_otlp::Protocol as OpenTelemetryProtocol;
 
 #[cfg(feature = "http")]
 pub mod http;
+#[cfg(feature = "opentelemetry")]
 mod otel;
 
 /// Create a new logging configurator
@@ -23,8 +24,10 @@ pub fn config() -> Builder<'static> {
 #[derive(Debug)]
 pub struct Builder<'b> {
     default_directive: Directive,
-    opentelemetry_url: Option<&'b str>,
-    opentelemetry_protocol: OpenTelemetryProtocol,
+    #[cfg(feature = "opentelemetry")]
+    opentelemetry: Option<otel::Config<'b>>,
+    #[cfg(not(feature = "opentelemetry"))]
+    _phantom: std::marker::PhantomData<&'b ()>,
 }
 
 impl<'b> Builder<'b> {
@@ -38,9 +41,9 @@ impl<'b> Builder<'b> {
     }
 
     /// Configure the OpenTelemetry exporter
+    #[cfg(feature = "opentelemetry")]
     pub fn opentelemetry(mut self, protocol: OpenTelemetryProtocol, url: &'b str) -> Self {
-        self.opentelemetry_url = Some(url);
-        self.opentelemetry_protocol = protocol;
+        self.opentelemetry = Some(otel::Config { protocol, url });
         self
     }
 
@@ -60,8 +63,11 @@ impl<'b> Builder<'b> {
                     .with_target(true),
             );
 
-        if let Some(url) = self.opentelemetry_url {
-            let exporter = otel::exporter(self.opentelemetry_protocol, url);
+        #[cfg(feature = "opentelemetry")]
+        if let Some(config) = self.opentelemetry {
+            use eyre::WrapErr;
+
+            let exporter = otel::exporter(config);
             let tracer =
                 otel::tracer(exporter).wrap_err("failed to initialize OpenTelemetry tracer")?;
 
@@ -77,6 +83,9 @@ impl<'b> Builder<'b> {
             registry.init();
         }
 
+        #[cfg(not(feature = "opentelemetry"))]
+        registry.init();
+
         Ok(())
     }
 }
@@ -85,8 +94,10 @@ impl<'b> Default for Builder<'b> {
     fn default() -> Self {
         Self {
             default_directive: Level::INFO.into(),
-            opentelemetry_url: None,
-            opentelemetry_protocol: OpenTelemetryProtocol::Grpc,
+            #[cfg(feature = "opentelemetry")]
+            opentelemetry: None,
+            #[cfg(not(feature = "opentelemetry"))]
+            _phantom: std::marker::PhantomData::default(),
         }
     }
 }
