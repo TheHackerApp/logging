@@ -6,7 +6,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   default:
-    name: Library
+    name: Library (no features)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -14,11 +14,18 @@ jobs:
 
       - run: cargo build --release
 
-  http:
-    name: Library (http)
+  feature:
+    name: Library (${{ matrix.feature }})
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - graphql
+          - http
+          - opentelemetry
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - run: cargo build --release -F http
+      - run: cargo build --release -F ${{ matrix.feature }}
