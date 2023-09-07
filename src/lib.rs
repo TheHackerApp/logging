@@ -10,6 +10,8 @@ use tracing_subscriber::{
 
 pub use opentelemetry_otlp::Protocol as OpenTelemetryProtocol;
 
+#[cfg(feature = "http")]
+pub mod http;
 mod otel;
 
 /// Create a new logging configurator
