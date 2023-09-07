@@ -15,6 +15,9 @@ pub mod http;
 #[cfg(feature = "opentelemetry")]
 mod otel;
 
+#[cfg(feature = "http")]
+pub use http::layer as http;
+
 /// Create a new logging configurator
 pub fn config() -> Builder<'static> {
     Builder::default()
