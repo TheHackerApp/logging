@@ -11,6 +11,10 @@ publish = ["wafflehacks"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+eyre = "0.6"
+opentelemetry = { version = "0.20", features = ["rt-tokio", "trace"] }
+opentelemetry-otlp = { version = "0.13", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls", "tls", "tls-roots", "trace"] }
 tracing = "0.1"
 tracing-error = "0.2"
+tracing-opentelemetry = { version = "0.21", default-features = false, features = ["tracing-log"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
