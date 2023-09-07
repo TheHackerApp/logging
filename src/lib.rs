@@ -10,11 +10,15 @@ use tracing_subscriber::{
 #[cfg(feature = "opentelemetry")]
 pub use opentelemetry_otlp::Protocol as OpenTelemetryProtocol;
 
+#[cfg(feature = "graphql")]
+mod graphql;
 #[cfg(feature = "http")]
 pub mod http;
 #[cfg(feature = "opentelemetry")]
 mod otel;
 
+#[cfg(feature = "graphql")]
+pub use graphql::GraphQL;
 #[cfg(feature = "http")]
 pub use http::layer as http;
 
