@@ -21,7 +21,7 @@ tower = { version = "0.4", default-features = false, optional = true }
 tower-http = { version = "0.4", default-features = false, features = ["trace"], optional = true }
 tracing = "0.1"
 tracing-error = "0.2"
-tracing-opentelemetry = { version = "0.21", default-features = false, features = ["tracing-log"], optional = true }
+tracing-opentelemetry = { version = "0.22", default-features = false, features = ["tracing-log"], optional = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1", features = ["v4"], optional = true }
 
