@@ -26,6 +26,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1", features = ["v4"], optional = true }
 
 [features]
+default = []
 graphql = ["dep:async-graphql", "dep:async-trait"]
 http = ["dep:http", "dep:tower", "dep:tower-http", "dep:uuid"]
 opentelemetry = ["dep:opentelemetry", "dep:opentelemetry-otlp", "dep:tracing-opentelemetry"]
