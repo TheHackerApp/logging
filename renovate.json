@@ -2,5 +2,28 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base"
+  ],
+  "packageRules": [
+    {
+      "groupName": "http packages",
+      "matchPackageNames": ["http", "tower-http"]
+    },
+    {
+      "groupName": "tower packages",
+      "matchSourceUrlPrefixes": ["https://github.com/tower-rs/"]
+    },
+    {
+      "groupName": "tracing packages",
+      "matchPackagePrefixes": ["tracing"]
+    },
+    {
+      "groupName": "opentelemetry packages",
+      "matchPackageNames": ["tracing-opentelemetry"],
+      "matchPackagePrefixes": ["opentelemetry"]
+    },
+    {
+      "groupName": "eyre packages",
+      "matchPackageNames": ["eyre", "color-eyre"]
+    }
   ]
 }
