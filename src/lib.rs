@@ -81,8 +81,8 @@ impl<'b> Builder<'b> {
             let opentelemetry = tracing_opentelemetry::layer()
                 .with_location(true)
                 .with_tracked_inactivity(true)
-                .with_exception_field_propagation(true)
-                .with_exception_fields(true)
+                .with_error_records_to_exceptions(true)
+                .with_error_fields_to_exceptions(true)
                 .with_tracer(tracer);
 
             registry.with(opentelemetry).init();
