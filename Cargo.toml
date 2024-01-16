@@ -16,6 +16,7 @@ async-trait = { version = "0.1", optional = true }
 eyre = "0.6"
 http = { version = "0.2", optional = true }
 opentelemetry = { version = "0.21", features = ["trace"], optional = true }
+opentelemetry-http = { version = "0.10", optional = true }
 opentelemetry-otlp = { version = "0.14", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls", "tls", "tls-roots", "trace"], optional = true }
 opentelemetry_sdk = { version = "0.21", features = ["rt-tokio"], optional = true }
 tower = { version = "0.4", default-features = false, optional = true }
@@ -30,4 +31,4 @@ uuid = { version = "1", features = ["v4"], optional = true }
 default = []
 graphql = ["dep:async-graphql", "dep:async-trait"]
 http = ["dep:http", "dep:tower", "dep:tower-http", "dep:uuid"]
-opentelemetry = ["dep:opentelemetry", "dep:opentelemetry-otlp", "dep:opentelemetry_sdk", "dep:tracing-opentelemetry"]
+opentelemetry = ["dep:opentelemetry", "dep:opentelemetry-http", "dep:opentelemetry-otlp", "dep:opentelemetry_sdk", "dep:tracing-opentelemetry"]
