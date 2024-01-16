@@ -12,32 +12,23 @@ jobs:
       features: ${{ steps.generate-matrix.outputs.features }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install Dasel
-        run: |
-          mkdir -p $HOME/.local/bin
-          DOWNLOAD_URL=$(gh api /repos/tomwright/dasel/releases/latest -q '.assets[] | select(.name == "dasel_linux_amd64") | .browser_download_url')
-          curl -sSLf $DOWNLOAD_URL -o $HOME/.local/bin/dasel
-          chmod +x $HOME/.local/bin/dasel
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Generate matrix from Cargo features
+      - run: python3 ./tools/features.py
         id: generate-matrix
-        run: |
-          FEATURES=$(dasel -f Cargo.toml -w json --pretty=false '.features.keys()')
-          echo "features=$FEATURES" >> "$GITHUB_OUTPUT"
 
   library:
-    name: Library (${{ matrix.feature }})
+    name: Library (${{ matrix.features }})
     runs-on: ubuntu-22.04
     needs: [generate-matrix]
     strategy:
       fail-fast: false
       matrix:
-        feature: ${{ fromJSON(needs.generate-matrix.outputs.features) }}
+        features: ${{ fromJSON(needs.generate-matrix.outputs.features) }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - run: cargo build --release -F ${{ matrix.feature }}
+      - run: cargo build --release -F "${{ matrix.features }}"
