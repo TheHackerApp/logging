@@ -9,15 +9,11 @@ jobs:
     name: Generate Build Matrix
     runs-on: ubuntu-22.04
     outputs:
-      features: ${{ steps.generate-matrix.outputs.features }}
+      features: ${{ steps.generator.outputs.features }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - run: python3 ./tools/features.py
-        id: generate-matrix
+      - uses: TheHackerApp/feature-powerset-action@main
+        id: generator
 
   library:
     name: Library (${{ matrix.features }})
