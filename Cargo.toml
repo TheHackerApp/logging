@@ -25,7 +25,7 @@ tracing = "0.1"
 tracing-error = "0.2"
 tracing-opentelemetry = { version = "0.22", default-features = false, features = ["tracing-log"], optional = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-uuid = { version = "1", features = ["v4"], optional = true }
+uuid = { version = "1.8.0", features = ["v4"], optional = true }
 
 [features]
 default = []
