@@ -29,13 +29,12 @@ impl<B> trace::MakeSpan<B> for MakeSpan {
         let headers = request.headers();
         if let Some(user_agent) = headers
             .get(header::USER_AGENT)
-            .map(|h| h.to_str().ok())
-            .flatten()
+            .and_then(|h| h.to_str().ok())
         {
             span.record("user_agent.original", user_agent);
         }
 
-        record_headers("request", &headers, &span);
+        record_headers("request", headers, &span);
 
         #[cfg(feature = "opentelemetry")]
         {
@@ -71,7 +70,7 @@ pub struct OnResponse;
 impl<B> trace::OnResponse<B> for OnResponse {
     fn on_response(self, response: &Response<B>, _latency: Duration, span: &Span) {
         span.record("http.response.status", response.status().as_u16());
-        record_headers("response", &response.headers(), span);
+        record_headers("response", response.headers(), span);
         info!("finished processing request");
     }
 }
