@@ -6,8 +6,8 @@ use async_graphql::{
     parser::types::{ExecutableDocument, OperationType, Selection},
     Response, ServerError, ServerResult, ValidationResult, Value, Variables,
 };
-use std::{sync::Arc, time::Instant};
-use tracing::{debug, info, span, warn, Instrument, Level};
+use std::sync::Arc;
+use tracing::{span, warn, Instrument, Level, Span};
 
 /// Adds tracing to the GraphQL flow
 ///
@@ -35,17 +35,9 @@ impl Extension for LoggingExtension {
         next: NextParseQuery<'_>,
     ) -> ServerResult<ExecutableDocument> {
         let span = span!(Level::INFO, "parse");
-        let now = Instant::now();
 
         async move {
-            debug!("started parsing request");
-            let result = next.run(ctx, query, variables).await;
-            debug!(
-                latency = format_args!("{} ms", now.elapsed().as_millis()),
-                "finished parsing request",
-            );
-
-            let document = result?;
+            let document = next.run(ctx, query, variables).await?;
 
             let is_schema = document
                 .operations
@@ -53,13 +45,14 @@ impl Extension for LoggingExtension {
                 .filter(|(_, operation)| operation.node.ty == OperationType::Query)
                 .any(|(_, operation)| operation.node.selection_set.node.items.iter().any(|selection| matches!(&selection.node, Selection::Field(field) if field.node.name.node == "__schema")));
             if !is_schema {
-                info!(document = ctx.stringify_execute_doc(&document, variables));
+                let span = Span::current();
+                span.record("graphql.document", ctx.stringify_execute_doc(&document, variables));
             }
 
             Ok(document)
         }
-        .instrument(span)
-        .await
+            .instrument(span)
+            .await
     }
 
     async fn validation(
@@ -68,7 +61,19 @@ impl Extension for LoggingExtension {
         next: NextValidation<'_>,
     ) -> async_graphql::Result<ValidationResult, Vec<ServerError>> {
         let span = span!(Level::INFO, "validation");
-        next.run(ctx).instrument(span).await
+        async move {
+            let result = next.run(ctx).await;
+
+            if let Ok(result) = result {
+                let span = Span::current();
+                span.record("graphql.complexity", result.complexity);
+                span.record("graphql.depth", result.depth);
+            }
+
+            result
+        }
+        .instrument(span)
+        .await
     }
 
     async fn execute(
@@ -77,21 +82,9 @@ impl Extension for LoggingExtension {
         operation_name: Option<&str>,
         next: NextExecute<'_>,
     ) -> Response {
-        let span = span!(Level::INFO, "execute", operation = %operation_name.unwrap_or_default());
-        let now = Instant::now();
+        let span = span!(Level::INFO, "execute", graphql.operation.name = %operation_name.unwrap_or_default());
 
-        async move {
-            debug!("started execution");
-            let response = next.run(ctx, operation_name).await;
-            debug!(
-                latency = format_args!("{} ms", now.elapsed().as_millis()),
-                "finished execution",
-            );
-
-            response
-        }
-        .instrument(span)
-        .await
+        next.run(ctx, operation_name).instrument(span).await
     }
 
     async fn resolve(
@@ -107,23 +100,20 @@ impl Extension for LoggingExtension {
 
         let span = span!(
             Level::INFO, "field",
-            path = %path_node,
-            parent_type = %info.parent_type,
-            return_type = %info.return_type,
+            graphql.node.path = %path_node,
+            graphql.node.parent_type = %info.parent_type,
+            graphql.node.return_type = %info.return_type,
         );
-        let now = Instant::now();
 
         async move {
-            debug!("started resolution");
             let result = next.run(ctx, info).await;
-            debug!(
-                latency = format_args!("{} ms", now.elapsed().as_millis()),
-                "finished resolution",
-            );
 
             // we do the actual error handling elsewhere, these errors are typically caused by
             // user error.
             if let Err(ref err) = result {
+                let span = Span::current();
+                span.record("error", true);
+                span.record("error.type", "graphql");
                 warn!(error = %err.message, locations = ?err.locations, path = ?err.path);
             }
 
