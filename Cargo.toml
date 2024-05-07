@@ -15,15 +15,15 @@ async-graphql = { version = "6", default-features = false, optional = true }
 async-trait = { version = "0.1", optional = true }
 eyre = "0.6"
 http = { version = "0.2", optional = true }
-opentelemetry = { version = "0.21", features = ["trace"], optional = true }
-opentelemetry-http = { version = "0.10", optional = true }
-opentelemetry-otlp = { version = "0.14", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls", "tls", "tls-roots", "trace"], optional = true }
-opentelemetry_sdk = { version = "0.21", features = ["rt-tokio"], optional = true }
+opentelemetry = { version = "0.22", features = ["trace"], optional = true }
+opentelemetry-http = { version = "0.11", optional = true }
+opentelemetry-otlp = { version = "0.15", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls", "tls", "tls-roots", "trace"], optional = true }
+opentelemetry_sdk = { version = "0.22", features = ["rt-tokio"], optional = true }
 tower = { version = "0.4", default-features = false, optional = true }
 tower-http = { version = "0.4", default-features = false, features = ["trace"], optional = true }
 tracing = "0.1"
 tracing-error = "0.2"
-tracing-opentelemetry = { version = "0.22", default-features = false, features = ["tracing-log"], optional = true }
+tracing-opentelemetry = { version = "0.23", default-features = false, features = ["tracing-log"], optional = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1", features = ["v4"], optional = true }
 
