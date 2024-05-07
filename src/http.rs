@@ -39,7 +39,6 @@ impl<B> trace::MakeSpan<B> for MakeSpan {
         #[cfg(feature = "opentelemetry")]
         {
             use opentelemetry::propagation::TextMapPropagator;
-            use opentelemetry_http::HeaderExtractor;
             use opentelemetry_sdk::propagation::{BaggagePropagator, TraceContextPropagator};
             use tracing_opentelemetry::OpenTelemetrySpanExt;
 
@@ -128,5 +127,24 @@ fn record_headers(direction: &'static str, headers: &HeaderMap, span: &Span) {
     {
         let header = header.as_str().to_lowercase();
         span.record(format!("http.{direction}.header.{header}").as_str(), value);
+    }
+}
+
+/// Re-implementation of [`opentelemetry_http::HeaderExtractor`] pending
+/// <https://github.com/open-telemetry/opentelemetry-rust/issues/1427>
+#[cfg(feature = "opentelemetry")]
+struct HeaderExtractor<'a>(pub &'a HeaderMap);
+
+#[cfg(feature = "opentelemetry")]
+impl<'a> opentelemetry::propagation::Extractor for HeaderExtractor<'a> {
+    fn get(&self, key: &str) -> Option<&str> {
+        self.0.get(key).and_then(|value| value.to_str().ok())
+    }
+
+    fn keys(&self) -> Vec<&str> {
+        self.0
+            .keys()
+            .map(|value| value.as_str())
+            .collect::<Vec<_>>()
     }
 }
